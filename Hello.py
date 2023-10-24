@@ -33,7 +33,7 @@ def run():
 
     st.write('### Exploring seasonality')
     
-    hotel_demand = pd.read_csv('/workspaces/hotel-demand-prediction/data/hotel_bookings.csv')
+    hotel_demand = pd.read_csv('data/hotel_bookings.csv')
     hotel_demand['arrival_month_num'] = pd.to_datetime(hotel_demand.arrival_date_month, format='%B').dt.month
     hotel_demand['arrival_date'] = pd.to_datetime((hotel_demand['arrival_date_year'].map(str) + "-" + hotel_demand['arrival_month_num'].map(str) + "-" + hotel_demand['arrival_date_day_of_month'].map(str)),yearfirst=True)
     hotel_demand2 = hotel_demand.query("reservation_status not in ('No-Show','Canceled')")
