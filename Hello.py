@@ -14,37 +14,51 @@
 
 import streamlit as st
 from streamlit.logger import get_logger
+import streamlit as st
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 LOGGER = get_logger(__name__)
 
 
 def run():
     st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
+        page_title="Hotel demand prediction",
+        page_icon="🏨",
     )
 
-    st.write("# Welcome to Streamlit! 👋")
+    st.write('# The first graph')
 
-    st.sidebar.success("Select a demo above.")
+    st.write('### Exploring seasonality')
+    
+    hotel_demand = pd.read_csv('/workspaces/hotel-demand-prediction/data/hotel_bookings.csv')
+    hotel_demand['arrival_month_num'] = pd.to_datetime(hotel_demand.arrival_date_month, format='%B').dt.month
+    hotel_demand['arrival_date'] = pd.to_datetime((hotel_demand['arrival_date_year'].map(str) + "-" + hotel_demand['arrival_month_num'].map(str) + "-" + hotel_demand['arrival_date_day_of_month'].map(str)),yearfirst=True)
+    hotel_demand2 = hotel_demand.query("reservation_status not in ('No-Show','Canceled')")
 
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
-    )
+    hotel_ts = hotel_demand2[['arrival_date', 'adults', 'children', 'babies']]
+
+    hotel_ts.insert(loc=4,column='rooms', value=1)
+    hotel_ts = hotel_ts.set_index('arrival_date').to_period('D')
+
+    hotel_ts = hotel_ts.resample("D").sum()
+
+    X = hotel_ts.copy()
+
+    X["day"] = X.index.dayofweek
+    X["week"] = X.index.week 
+    X["dayofyear"] = X.index.dayofyear
+    X["year"] = X.index.year
+    X["month"] = X.index.month
+
+    fig, (ax0, ax1, ax2) = plt.subplots(3, 1, figsize=(11, 6))
+    sns.lineplot(data=X, y="rooms", hue="week", x="day", ax=ax0)
+    sns.lineplot(data=X, y="rooms", hue="year", x="dayofyear", ax=ax1)
+    sns.lineplot(data=X, y="rooms", hue="year", x="month", ax=ax2)
+
+    st.pyplot(fig)
 
 
 if __name__ == "__main__":
