@@ -3,3 +3,5 @@ numpy
 pandas
 pydeck
 streamlit
+seaborn==0.13.0
+matplotlib==3.8.0
