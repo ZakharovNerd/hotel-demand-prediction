@@ -14,6 +14,7 @@
 
 import streamlit as st
 from streamlit.logger import get_logger
+from target_dataset import load_data
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -33,32 +34,10 @@ def run():
 
     st.write('### Exploring seasonality')
     
-    hotel_demand = pd.read_csv('data/hotel_bookings.csv')
-    hotel_demand['arrival_month_num'] = pd.to_datetime(hotel_demand.arrival_date_month, format='%B').dt.month
-    hotel_demand['arrival_date'] = pd.to_datetime((hotel_demand['arrival_date_year'].map(str) + "-" + hotel_demand['arrival_month_num'].map(str) + "-" + hotel_demand['arrival_date_day_of_month'].map(str)),yearfirst=True)
-    hotel_demand2 = hotel_demand.query("reservation_status not in ('No-Show','Canceled')")
+    target_dataset = load_data('data/customers_orders.csv')
 
-    hotel_ts = hotel_demand2[['arrival_date', 'adults', 'children', 'babies']]
+    st.map(df.plot())
 
-    hotel_ts.insert(loc=4,column='rooms', value=1)
-    hotel_ts = hotel_ts.set_index('arrival_date').to_period('D')
-
-    hotel_ts = hotel_ts.resample("D").sum()
-
-    X = hotel_ts.copy()
-
-    X["day"] = X.index.dayofweek
-    X["week"] = X.index.week 
-    X["dayofyear"] = X.index.dayofyear
-    X["year"] = X.index.year
-    X["month"] = X.index.month
-
-    fig, (ax0, ax1, ax2) = plt.subplots(3, 1, figsize=(11, 6))
-    sns.lineplot(data=X, y="rooms", hue="week", x="day", ax=ax0)
-    sns.lineplot(data=X, y="rooms", hue="year", x="dayofyear", ax=ax1)
-    sns.lineplot(data=X, y="rooms", hue="year", x="month", ax=ax2)
-
-    st.pyplot(fig)
 
 
 if __name__ == "__main__":
